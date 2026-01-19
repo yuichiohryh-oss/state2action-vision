@@ -31,6 +31,11 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["events", "dataset"],
         help="Print the JSON schema for the selected kind and exit.",
     )
+    parser.add_argument(
+        "--schema-out",
+        type=Path,
+        help="Write the JSON schema to a file (requires --schema).",
+    )
     return parser
 
 
@@ -50,9 +55,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
+    if args.schema_out is not None and args.schema is None:
+        parser.error("--schema-out requires --schema.")
+
     if args.schema is not None:
         schema = get_json_schema(args.schema)
-        print(json.dumps(schema, ensure_ascii=False, indent=2))
+        schema_payload = json.dumps(schema, ensure_ascii=False, indent=2)
+        if args.schema_out is not None:
+            args.schema_out.parent.mkdir(parents=True, exist_ok=True)
+            args.schema_out.write_text(schema_payload + "\n", encoding="utf-8")
+            logger.info("schema_written", extra={"path": str(args.schema_out), "kind": args.schema})
+        else:
+            print(schema_payload)
         if args.events is None and args.dataset is None:
             return 0
 

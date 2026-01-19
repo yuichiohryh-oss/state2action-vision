@@ -55,3 +55,21 @@ def test_schema_output() -> None:
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert payload["title"] == "events.jsonl"
+
+
+def test_schema_out_requires_schema() -> None:
+    result = _run_validate(["--schema-out", "schema.json"])
+
+    assert result.returncode != 0
+    assert "requires --schema" in result.stderr
+
+
+def test_schema_output_written(tmp_path: Path) -> None:
+    output_path = tmp_path / "schema.json"
+
+    result = _run_validate(["--schema", "dataset", "--schema-out", str(output_path)])
+
+    assert result.returncode == 0
+    assert output_path.exists()
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["title"] == "dataset.jsonl"
