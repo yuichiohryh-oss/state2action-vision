@@ -47,3 +47,21 @@ def test_validate_dataset_fail(tmp_path: Path) -> None:
 
     assert result.returncode == 1
     assert "validation_failed" in result.stderr
+
+
+def test_schema_output() -> None:
+    result = _run_validate(["--schema", "events"])
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["title"] == "events.jsonl"
+
+
+def test_schema_output_to_file(tmp_path: Path) -> None:
+    schema_path = tmp_path / "dataset.schema.json"
+
+    result = _run_validate(["--schema", "dataset", "--schema-out", str(schema_path)])
+
+    assert result.returncode == 0
+    payload = json.loads(schema_path.read_text(encoding="utf-8"))
+    assert payload["title"] == "dataset.jsonl"

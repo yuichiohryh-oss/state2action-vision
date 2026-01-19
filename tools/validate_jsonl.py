@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
 
-from state2action_vision.config.schemas import parse_dataset_record, parse_event_record
+from state2action_vision.config.schemas import get_json_schema, parse_dataset_record, parse_event_record, write_json_schema
 from state2action_vision.dataset.io import read_jsonl
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,16 @@ def _build_parser() -> argparse.ArgumentParser:
         "--dataset",
         type=Path,
         help="Path to dataset.jsonl to validate.",
+    )
+    parser.add_argument(
+        "--schema",
+        choices=["events", "dataset"],
+        help="Print the JSON schema for the selected kind and exit.",
+    )
+    parser.add_argument(
+        "--schema-out",
+        type=Path,
+        help="Write the JSON schema to the given path (requires --schema).",
     )
     return parser
 
@@ -43,6 +54,18 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    if args.schema_out is not None and args.schema is None:
+        parser.error("--schema-out requires --schema.")
+
+    if args.schema is not None:
+        if args.schema_out is None:
+            schema = get_json_schema(args.schema)
+            print(json.dumps(schema, ensure_ascii=False, indent=2))
+        else:
+            write_json_schema(args.schema_out, args.schema)
+        if args.events is None and args.dataset is None:
+            return 0
 
     if args.events is None and args.dataset is None:
         parser.error("At least one of --events or --dataset is required.")

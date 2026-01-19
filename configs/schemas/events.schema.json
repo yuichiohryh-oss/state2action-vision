@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "events.jsonl",
+  "type": "object",
+  "required": [
+    "video_id",
+    "t_ms",
+    "action_id",
+    "tap_xy_rel",
+    "candidate_slot"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "video_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "t_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "action_id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tap_xy_rel": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "candidate_slot": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    }
+  }
+}

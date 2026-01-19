@@ -46,6 +46,12 @@ dataset.jsonl（フレーム+ラベル+補助特徴）:
 {"image_path":"data/derived/frames/v001/00012780.png","action_id":3,"tap_xy_rel":[0.31,0.81],"candidate_mask":[1,1,0,1],"resource_gauge":0.21,"time_remaining_s":49.8,"grid_id":"vertical_720p:v1"}
 ```
 
+JSON Schema の参照:
+```bash
+python tools/validate_jsonl.py --schema events
+python tools/validate_jsonl.py --schema dataset --schema-out configs/schemas/dataset.schema.json
+```
+
 ## ROIとグリッド設計
 - ROI座標は 0..1 の相対値で保存し、解像度差に強くする。
 - preset YAML に ROI矩形、スロット配置、レイアウト情報をまとめる。

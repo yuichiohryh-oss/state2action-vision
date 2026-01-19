@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "dataset.jsonl",
+  "type": "object",
+  "required": [
+    "image_path",
+    "action_id",
+    "tap_xy_rel",
+    "candidate_mask",
+    "resource_gauge",
+    "time_remaining_s",
+    "grid_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "image_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action_id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tap_xy_rel": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "candidate_mask": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "enum": [
+          0,
+          1
+        ]
+      }
+    },
+    "resource_gauge": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "time_remaining_s": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "grid_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
