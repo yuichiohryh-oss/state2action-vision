@@ -33,6 +33,14 @@ s2a-predict-policy `
   --topk 5
 ```
 
+## JSONL バリデーション
+`events.jsonl` と `dataset.jsonl` を事前チェックするための CLI です。
+
+```powershell
+python tools/validate_jsonl.py --events data/raw/events/events.jsonl
+python tools/validate_jsonl.py --dataset data/derived/datasets/dataset.jsonl --max-errors 5
+```
+
 ## データ形式
 events.jsonl（人手ラベル）:
 ```json
@@ -85,7 +93,6 @@ repo/
     predict_policy.py
     inspect_roi.py
     export_frames.py
-    validate_jsonl.py
   tests/
     test_dataset_io.py
     test_model_forward.py
