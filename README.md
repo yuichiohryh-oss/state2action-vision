@@ -85,6 +85,7 @@ repo/
     predict_policy.py
     inspect_roi.py
     export_frames.py
+    validate_jsonl.py
   tests/
     test_dataset_io.py
     test_model_forward.py
