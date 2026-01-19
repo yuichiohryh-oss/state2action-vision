@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from state2action_vision.config.schemas import DatasetRecord, EventRecord, parse_dataset_record, parse_event_record
-from state2action_vision.dataset.io import read_jsonl, write_jsonl
+from state2action_vision.dataset.io import iter_jsonl, read_jsonl, write_jsonl
 
 
 def test_parse_event_record_success() -> None:
@@ -79,6 +79,35 @@ def test_jsonl_roundtrip(tmp_path: Path) -> None:
     assert loaded == records
     raw = json.loads(path.read_text(encoding="utf-8").strip())
     assert raw["image_path"] == "frame.png"
+
+
+def test_iter_jsonl_roundtrip(tmp_path: Path) -> None:
+    records = [
+        DatasetRecord(
+            image_path="frame_a.png",
+            action_id=2,
+            tap_xy_rel=(0.2, 0.4),
+            candidate_mask=[1, 1, 0],
+            resource_gauge=0.2,
+            time_remaining_s=5.0,
+            grid_id="vertical_720p:v1",
+        ),
+        DatasetRecord(
+            image_path="frame_b.png",
+            action_id=3,
+            tap_xy_rel=None,
+            candidate_mask=[0, 1, 1],
+            resource_gauge=None,
+            time_remaining_s=None,
+            grid_id="vertical_720p:v1",
+        ),
+    ]
+    path = tmp_path / "dataset.jsonl"
+
+    write_jsonl(path, records)
+    loaded = list(iter_jsonl(path, parse_dataset_record))
+
+    assert loaded == records
 
 
 def test_read_jsonl_invalid_json(tmp_path: Path) -> None:

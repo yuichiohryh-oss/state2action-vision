@@ -16,26 +16,46 @@ T = TypeVar("T")
 def read_jsonl(path: str | Path, parser: Callable[[Mapping[str, Any]], T]) -> list[T]:
     """Read a jsonl file and parse each line with the provided parser."""
 
-    file_path = Path(path)
-    records: list[T] = []
-    with file_path.open("r", encoding="utf-8") as handle:
-        for line_number, line in enumerate(handle, start=1):
-            if not line.strip():
-                continue
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise ValueError(f"Invalid JSON on line {line_number} in {file_path}") from exc
-            if not isinstance(payload, Mapping):
-                raise ValueError(f"Line {line_number} in {file_path} must be a JSON object")
-            try:
-                records.append(parser(payload))
-            except ValueError as exc:
-                raise ValueError(
-                    f"Invalid record on line {line_number} in {file_path}: {exc}"
-                ) from exc
-    logger.info("read_jsonl", extra={"path": str(file_path), "count": len(records)})
+    records = list(iter_jsonl(path, parser))
+    logger.info("read_jsonl", extra={"path": str(Path(path)), "count": len(records)})
     return records
+
+
+def iter_jsonl(path: str | Path, parser: Callable[[Mapping[str, Any]], T]) -> Iterator[T]:
+    """Iterate over a jsonl file and parse each line with the provided parser."""
+
+    file_path = Path(path)
+
+    def _iterator() -> Iterator[T]:
+        count = 0
+        success = False
+        try:
+            with file_path.open("r", encoding="utf-8") as handle:
+                for line_number, line in enumerate(handle, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        raise ValueError(
+                            f"Invalid JSON on line {line_number} in {file_path}"
+                        ) from exc
+                    if not isinstance(payload, Mapping):
+                        raise ValueError(f"Line {line_number} in {file_path} must be a JSON object")
+                    try:
+                        record = parser(payload)
+                    except ValueError as exc:
+                        raise ValueError(
+                            f"Invalid record on line {line_number} in {file_path}: {exc}"
+                        ) from exc
+                    count += 1
+                    yield record
+            success = True
+        finally:
+            if success:
+                logger.info("iter_jsonl", extra={"path": str(file_path), "count": count})
+
+    return _iterator()
 
 
 def write_jsonl(path: str | Path, records: Iterable[Any]) -> None:
