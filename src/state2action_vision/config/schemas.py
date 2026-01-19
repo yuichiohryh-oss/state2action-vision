@@ -2,11 +2,68 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 import logging
-from typing import Any, Mapping, Sequence
+from typing import Any, Literal, Mapping, Sequence
 
 logger = logging.getLogger(__name__)
+
+SchemaKind = Literal["events", "dataset"]
+
+EVENT_JSON_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "events.jsonl",
+    "type": "object",
+    "required": ["video_id", "t_ms", "action_id", "tap_xy_rel", "candidate_slot"],
+    "additionalProperties": False,
+    "properties": {
+        "video_id": {"type": "string", "minLength": 1},
+        "t_ms": {"type": "integer", "minimum": 0},
+        "action_id": {"type": "integer", "minimum": 0},
+        "tap_xy_rel": {
+            "type": ["array", "null"],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+        "candidate_slot": {"type": ["integer", "null"], "minimum": 0},
+    },
+}
+
+DATASET_JSON_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "dataset.jsonl",
+    "type": "object",
+    "required": [
+        "image_path",
+        "action_id",
+        "tap_xy_rel",
+        "candidate_mask",
+        "resource_gauge",
+        "time_remaining_s",
+        "grid_id",
+    ],
+    "additionalProperties": False,
+    "properties": {
+        "image_path": {"type": "string", "minLength": 1},
+        "action_id": {"type": "integer", "minimum": 0},
+        "tap_xy_rel": {
+            "type": ["array", "null"],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+        "candidate_mask": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "integer", "enum": [0, 1]},
+        },
+        "resource_gauge": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "time_remaining_s": {"type": ["number", "null"], "minimum": 0},
+        "grid_id": {"type": "string", "minLength": 1},
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -75,6 +132,16 @@ def parse_dataset_record(raw: Mapping[str, Any]) -> DatasetRecord:
     )
     logger.debug("validated_dataset_record", extra={"image_path": image_path, "grid_id": grid_id})
     return record
+
+
+def get_json_schema(kind: SchemaKind) -> Mapping[str, Any]:
+    """Return the JSON schema definition for events or datasets."""
+
+    if kind == "events":
+        return copy.deepcopy(EVENT_JSON_SCHEMA)
+    if kind == "dataset":
+        return copy.deepcopy(DATASET_JSON_SCHEMA)
+    raise ValueError(f"Unknown schema kind: {kind}")
 
 
 def _require_str(raw: Mapping[str, Any], key: str) -> str:
