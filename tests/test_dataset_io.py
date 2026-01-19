@@ -59,6 +59,36 @@ def test_parse_dataset_record_invalid_mask() -> None:
         )
 
 
+def test_parse_event_record_rejects_extra_fields() -> None:
+    with pytest.raises(ValueError, match="Unexpected fields"):
+        parse_event_record(
+            {
+                "video_id": "v001",
+                "t_ms": 1200,
+                "action_id": 3,
+                "tap_xy_rel": [0.2, 0.8],
+                "candidate_slot": 1,
+                "extra": "nope",
+            }
+        )
+
+
+def test_parse_dataset_record_rejects_extra_fields() -> None:
+    with pytest.raises(ValueError, match="Unexpected fields"):
+        parse_dataset_record(
+            {
+                "image_path": "frame.png",
+                "action_id": 1,
+                "tap_xy_rel": [0.3, 0.6],
+                "candidate_mask": [1, 0, 1],
+                "resource_gauge": 0.5,
+                "time_remaining_s": 12.3,
+                "grid_id": "vertical_720p:v1",
+                "unexpected": 1,
+            }
+        )
+
+
 def test_jsonl_roundtrip(tmp_path: Path) -> None:
     records = [
         DatasetRecord(

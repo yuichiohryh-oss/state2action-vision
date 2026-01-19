@@ -93,6 +93,7 @@ class DatasetRecord:
 def parse_event_record(raw: Mapping[str, Any]) -> EventRecord:
     """Parse and validate a single event record."""
 
+    _reject_extra_keys(raw, {"video_id", "t_ms", "action_id", "tap_xy_rel", "candidate_slot"})
     video_id = _require_str(raw, "video_id")
     t_ms = _require_int(raw, "t_ms", minimum=0)
     action_id = _require_int(raw, "action_id", minimum=0)
@@ -113,6 +114,18 @@ def parse_event_record(raw: Mapping[str, Any]) -> EventRecord:
 def parse_dataset_record(raw: Mapping[str, Any]) -> DatasetRecord:
     """Parse and validate a single dataset record."""
 
+    _reject_extra_keys(
+        raw,
+        {
+            "image_path",
+            "action_id",
+            "tap_xy_rel",
+            "candidate_mask",
+            "resource_gauge",
+            "time_remaining_s",
+            "grid_id",
+        },
+    )
     image_path = _require_str(raw, "image_path")
     action_id = _require_int(raw, "action_id", minimum=0)
     tap_xy_rel = _optional_xy(raw.get("tap_xy_rel"), field_name="tap_xy_rel")
@@ -223,3 +236,10 @@ def _require_mask(raw: Mapping[str, Any], key: str) -> list[int]:
             raise ValueError(f"Field '{key}' entries must be 0 or 1")
         mask.append(entry)
     return mask
+
+
+def _reject_extra_keys(raw: Mapping[str, Any], allowed: set[str]) -> None:
+    extras = [str(key) for key in raw.keys() if key not in allowed]
+    if extras:
+        extras_sorted = ", ".join(sorted(extras))
+        raise ValueError(f"Unexpected fields: {extras_sorted}")
