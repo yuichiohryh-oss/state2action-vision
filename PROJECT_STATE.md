@@ -27,6 +27,7 @@ video -> events -> dataset -> train -> predict
 - `tools/predict_policy.py`: 単一入力で top-k 提案を出力。
 - `tools/inspect_roi.py`: ROI とグリッド preset の検証。
 - `tools/export_frames.py`: ラベル作成/QA用のフレーム書き出し。
+- `tools/validate_jsonl.py`: events/dataset の jsonl バリデーション。
 
 ## 優先度
 - P0: データセットスキーマ、preset駆動ROI、ベースライン分類器、推論の action mask、スモークテスト。
